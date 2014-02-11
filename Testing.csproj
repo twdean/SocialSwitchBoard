@@ -39,8 +39,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="agsXMPP">
-      <HintPath>..\packages\agsXMPP.1.1.1.0\lib\agsXMPP.dll</HintPath>
+    <Reference Include="agsXMPP, Version=1.1.1.0, Culture=neutral, PublicKeyToken=ff839b81f1debe86, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Assemblies\agsXMPP.dll</HintPath>
     </Reference>
     <Reference Include="Facebook, Version=6.0.10.0, Culture=neutral, PublicKeyToken=58cb4f2111d1e6de, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -158,7 +159,9 @@
     <Content Include="Assemblies\DotNetOpenAuth.OpenId.dll" />
     <Content Include="Assemblies\DotNetOpenAuth.OpenId.RelyingParty.dll" />
     <Content Include="Assemblies\EntityFramework.dll" />
+    <Content Include="Assemblies\Facebook.dll" />
     <Content Include="Assemblies\ISymWrapper.dll" />
+    <Content Include="Assemblies\LinqToTwitter.dll" />
     <Content Include="Assemblies\Microsoft.Activities.Build.dll" />
     <Content Include="Assemblies\Microsoft.AspNet.SignalR.Core.dll" />
     <Content Include="Assemblies\Microsoft.AspNet.SignalR.Owin.dll" />
