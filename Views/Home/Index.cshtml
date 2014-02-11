@@ -29,8 +29,10 @@
         </p>
     </fieldset>
     <fieldset>
-    <p class="alert-warning">@Model.StatusMessage</p>
-</fieldset>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.StatusMessage)
+        </div>
+    </fieldset>
 
 }
 
