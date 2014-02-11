@@ -241,14 +241,27 @@ namespace Testing.Controllers
         }
 
         [HttpPost]
-        public ActionResult SendMessage(string message)
+        public ActionResult SendMessage(MessageModel message)
         {
-            MessageContent = message;
+            try
+            {
+                MessageContent = message.MessageContent;
 
-            SendTwitterMessage();
-            SendFacebookMessage();
+                ModelState.Clear();
 
-            return View("Index");
+                SendTwitterMessage();
+                SendFacebookMessage();
+
+                message.MessageContent = "";
+                message.StatusMessage = "Message sent successfully!";
+            }
+            catch(Exception ex)
+            {
+                message.StatusMessage = "Error Sending Message";
+            }
+            
+
+            return View("Index", message);
         }
 
         [HttpPost]
