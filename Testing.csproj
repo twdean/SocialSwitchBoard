@@ -149,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assemblies\Accessibility.dll" />
+    <Content Include="Assemblies\agsXMPP.dll" />
     <Content Include="Assemblies\Antlr3.Runtime.dll" />
     <Content Include="Assemblies\CustomMarshalers.dll" />
     <Content Include="Assemblies\DotNetOpenAuth.AspNet.dll" />
