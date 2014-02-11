@@ -90,7 +90,7 @@ namespace Testing.Controllers
                 Session.Add("FacebookContext", accessToken);
             }
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Login", "Home");
         }
 
         [AllowAnonymous]
@@ -171,7 +171,7 @@ namespace Testing.Controllers
             }
 
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Login", "Home");
         }
 
         [HttpGet]
