@@ -9,5 +9,6 @@ namespace Testing.Models
     {
         public string MessageContent { get; set; }
         public List<RecipientModel> Recipient { get; set; }
+
     }
 }

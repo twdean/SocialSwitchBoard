@@ -22,6 +22,7 @@ namespace Testing.Controllers
     public class HomeController : Controller
     {
         XmppClientConnection xmpp = new XmppClientConnection("chat.facebook.com");
+        public string MessageContent { get; set; }
 
         public ActionResult Login()
         {
@@ -180,9 +181,8 @@ namespace Testing.Controllers
         }
 
 
-        public void SendTwitterMessage(MessageModel message)
+        public void SendTwitterMessage()
         {
-
             var twitterCtx = (TwitterContext)Session["TwitterContext"];
             var tUser =
                     (from user in twitterCtx.User
@@ -190,57 +190,63 @@ namespace Testing.Controllers
                            user.ScreenName == "l9digital"
                      select user).FirstOrDefault();
 
-            if (!String.IsNullOrWhiteSpace(message.MessageContent))
+            if (!String.IsNullOrWhiteSpace(MessageContent))
             {
-                twitterCtx.UpdateStatus(message.MessageContent);
-                twitterCtx.NewDirectMessage(tUser.Identifier.UserID, message.MessageContent);
+                twitterCtx.UpdateStatus(MessageContent);
+                twitterCtx.NewDirectMessage(tUser.Identifier.UserID, MessageContent);
             }
 
         }
 
-        public void SendFacebookMessage(MessageModel message)
+        public void SendFacebookMessage()
         {
-            //const int batchSize = 50;
-            //var parameters = new Dictionary<string, object>();
-
-            //var accessToken = (String)Session["FacebookContext"];
-
-            //var client = new FacebookClient(accessToken);
-
-            //for (long q = 0; q < 5000; q += batchSize)
-            //{
-            //    parameters["limit"] = batchSize;
-            //    parameters["offset"] = q;
-
-            //    dynamic myFriends = client.Get("me/friends", parameters);
-            //    foreach(dynamic friend in myFriends.data)
-            //    {
-            //        if(friend.name == "Karim Awad")
-            //        {
-            //            string id = friend.id;
-            //        }
-            //    }
-            //}
-
             xmpp.Open("therealtrevordean", "export1313");
             xmpp.OnLogin += new ObjectHandler(OnLogin);
         }
 
+        private string GetFacebookFriends(string friendName)
+        {
+            const int batchSize = 50;
+            string facebookId = string.Empty;
+            var parameters = new Dictionary<string, object>();
+
+            var accessToken = (String)Session["FacebookContext"];
+
+            var client = new FacebookClient(accessToken);
+
+            for (long q = 0; q < 5000; q += batchSize)
+            {
+                parameters["limit"] = batchSize;
+                parameters["offset"] = q;
+
+                dynamic myFriends = client.Get("me/friends", parameters);
+                foreach (dynamic friend in myFriends.data)
+                {
+                    if (friend.name == friendName)
+                    {
+                        facebookId = friend.id;
+                    }
+                }
+            }
+
+            return facebookId;
+        }
 
         private void OnLogin(object sender)
         {
             //string recieverId = "-721040555@chat.facebook.com"; //Trevor
-            string recieverId = "-718145001@chat.facebook.com"; //Trevor 
-            string message = "We have lift off!";
+            string recieverId = "-718145001@chat.facebook.com"; //Karim 
 
-            xmpp.Send(new agsXMPP.protocol.client.Message(new Jid(recieverId), agsXMPP.protocol.client.MessageType.chat, message));
+            xmpp.Send(new agsXMPP.protocol.client.Message(new Jid(recieverId), agsXMPP.protocol.client.MessageType.chat, MessageContent));
         }
 
         [HttpPost]
-        public ActionResult SendMessage(MessageModel message)
+        public ActionResult SendMessage(string message)
         {
-            //SendTwitterMessage(message);
-            SendFacebookMessage(message);
+            MessageContent = message;
+
+            SendTwitterMessage();
+            SendFacebookMessage();
 
             return View("Index");
         }
