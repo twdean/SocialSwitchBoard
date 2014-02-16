@@ -39,10 +39,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="agsXMPP, Version=1.1.1.0, Culture=neutral, PublicKeyToken=ff839b81f1debe86, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Assemblies\agsXMPP.dll</HintPath>
-    </Reference>
     <Reference Include="Facebook, Version=6.0.10.0, Culture=neutral, PublicKeyToken=58cb4f2111d1e6de, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Assemblies\Facebook.dll</HintPath>
@@ -51,8 +47,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Assemblies\LinqToTwitter.dll</HintPath>
     </Reference>
-    <Reference Include="Matrix">
-      <HintPath>..\..\..\..\..\..\Users\trevordean\Documents\AG-Software\MatriX\bin\net45\Matrix.dll</HintPath>
+    <Reference Include="Matrix, Version=1.5.5.0, Culture=neutral, PublicKeyToken=0120f1df71ff86bc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Assemblies\Matrix.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -152,7 +149,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assemblies\Accessibility.dll" />
-    <Content Include="Assemblies\agsXMPP.dll" />
     <Content Include="Assemblies\Antlr3.Runtime.dll" />
     <Content Include="Assemblies\CustomMarshalers.dll" />
     <Content Include="Assemblies\DotNetOpenAuth.AspNet.dll" />
@@ -166,6 +162,7 @@
     <Content Include="Assemblies\Facebook.dll" />
     <Content Include="Assemblies\ISymWrapper.dll" />
     <Content Include="Assemblies\LinqToTwitter.dll" />
+    <Content Include="Assemblies\Matrix.dll" />
     <Content Include="Assemblies\Microsoft.Activities.Build.dll" />
     <Content Include="Assemblies\Microsoft.AspNet.SignalR.Core.dll" />
     <Content Include="Assemblies\Microsoft.AspNet.SignalR.Owin.dll" />

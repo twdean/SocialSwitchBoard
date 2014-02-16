@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using agsXMPP;
 using LinqToTwitter;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,6 @@ using Matrix.Xmpp.Sasl.Processor.Facebook;
 using Matrix.Xmpp.XHtmlIM;
 using Testing.Models;
 using Facebook;
-using agsXMPP.Sasl.Facebook;
 using Jid = Matrix.Jid;
 
 namespace Testing.Controllers
