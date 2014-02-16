@@ -51,6 +51,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Assemblies\LinqToTwitter.dll</HintPath>
     </Reference>
+    <Reference Include="Matrix">
+      <HintPath>..\..\..\..\..\..\Users\trevordean\Documents\AG-Software\MatriX\bin\net45\Matrix.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />

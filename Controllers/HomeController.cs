@@ -1,28 +1,33 @@
-﻿using LinqToTwitter;
+﻿using System.Reflection;
+using agsXMPP;
+using LinqToTwitter;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
-using System.Net;
-using System.IO;
-using System.Text;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
+using Matrix.Xmpp;
+using Matrix.Xmpp.Client;
+using Matrix.Xmpp.Sasl;
+using Matrix.Xmpp.Sasl.Processor.Facebook;
+using Matrix.Xmpp.XHtmlIM;
 using Testing.Models;
-using agsXMPP;
-using agsXMPP.protocol.client;
-using agsXMPP.protocol.iq.roster;
-using agsXMPP.Collections;
-using Newtonsoft.Json;
 using Facebook;
+using agsXMPP.Sasl.Facebook;
+using Jid = Matrix.Jid;
 
 namespace Testing.Controllers
 {
     public class HomeController : Controller
     {
-        XmppClientConnection xmpp = new XmppClientConnection("chat.facebook.com");
+        public XmppClient xmpp = new XmppClient();
+
+
+        //XmppClientConnection xmpp = new XmppClientConnection("chat.facebook.com");
         public string MessageContent { get; set; }
+        public string FacebookId { get; set; }
+        public string TwitterId { get; set; }
+        public List<string> FacebookFriendIds { get; set; }
 
         public ActionResult Login()
         {
@@ -32,29 +37,29 @@ namespace Testing.Controllers
         public ActionResult AuthenticateFacebook()
         {
 
-                var facebookKey = ConfigurationManager.AppSettings["FacebookKey"];
-                var facebookSecret = ConfigurationManager.AppSettings["FacebookSecret"];
+            var facebookKey = ConfigurationManager.AppSettings["FacebookKey"];
+            var facebookSecret = ConfigurationManager.AppSettings["FacebookSecret"];
 
 
-                var uriBuilder = new UriBuilder(Request.Url)
-                {
-                    Query = null,
-                    Fragment = null,
-                    Path = Url.Action("FacebookCallback")
-                }.Uri;
+            var uriBuilder = new UriBuilder(Request.Url)
+            {
+                Query = null,
+                Fragment = null,
+                Path = Url.Action("FacebookCallback")
+            }.Uri;
 
 
-                var fb = new FacebookClient();
-                var loginUrl = fb.GetLoginUrl(new
-                {
-                    client_id = facebookKey,
-                    client_secret = facebookSecret,
-                    redirect_uri = uriBuilder.AbsoluteUri,
-                    response_type = "code",
-                    scope = "email,user_status, user_photos, read_stream, read_insights, user_online_presence, xmpp_login"
-                });
+            var fb = new FacebookClient();
+            var loginUrl = fb.GetLoginUrl(new
+            {
+                client_id = facebookKey,
+                client_secret = facebookSecret,
+                redirect_uri = uriBuilder.AbsoluteUri,
+                response_type = "code",
+                scope = "email,user_status, user_photos, read_stream, read_insights, user_online_presence, xmpp_login"
+            });
 
-                return Redirect(loginUrl.AbsoluteUri);
+            return Redirect(loginUrl.AbsoluteUri);
         }
 
         public ActionResult FacebookCallback(string code)
@@ -81,7 +86,7 @@ namespace Testing.Controllers
 
             var accessToken = result.access_token;
 
-            if(Session["FacebookContext"] != null)
+            if (Session["FacebookContext"] != null)
             {
                 Session["FacebookContext"] = accessToken;
             }
@@ -155,7 +160,7 @@ namespace Testing.Controllers
 
                 var twitterCtx = new TwitterContext(auth);
 
-                if(Session["TwitterContext"] != null)
+                if (Session["TwitterContext"] != null)
                 {
                     Session["TwitterContext"] = twitterCtx;
                 }
@@ -184,35 +189,91 @@ namespace Testing.Controllers
         public void SendTwitterMessage()
         {
             var twitterCtx = (TwitterContext)Session["TwitterContext"];
-            var tUser =
+            var tUser1 =
                     (from user in twitterCtx.User
                      where user.Type == UserType.Lookup &&
-                           user.ScreenName == "l9digital"
+                           user.ScreenName == "karimawad"
                      select user).FirstOrDefault();
+
+            var tUser2 =
+                    (from user in twitterCtx.User
+                     where user.Type == UserType.Lookup &&
+                           user.ScreenName == "kmore"
+                     select user).FirstOrDefault();
+
 
             if (!String.IsNullOrWhiteSpace(MessageContent))
             {
-                twitterCtx.UpdateStatus(MessageContent);
-                twitterCtx.NewDirectMessage(tUser.Identifier.UserID, MessageContent);
+                //twitterCtx.UpdateStatus(MessageContent);
+                //twitterCtx.NewDirectMessage(tUser1.Identifier.UserID, MessageContent);
+                //twitterCtx.NewDirectMessage(tUser2.Identifier.UserID, MessageContent);
             }
 
         }
 
         public void SendFacebookMessage()
         {
-            xmpp.Open("therealtrevordean", "export1313");
-            xmpp.OnLogin += new ObjectHandler(OnLogin);
+            xmpp.OnBeforeSasl += xmpp_OnBeforeSasl;
+            xmpp.OnError += xmpp_OnError;
+            xmpp.XmppDomain = "chat.facebook.com";
+            xmpp.Port = 5222;
+            xmpp.Open();
+
+            FacebookFriendIds = GetFacebookFriends(new List<string> { "Karim Awad", "Kerry Morrison" });
+
+            string senderId = string.Format("-{0}@chat.facebook.com", FacebookId);
+
+            foreach (string id in FacebookFriendIds)
+            {
+                string recieverId = string.Format("-{0}@chat.facebook.com", id);
+
+                var msg = new Message
+                {
+                    Type = MessageType.chat,
+                    To = new Jid(recieverId),
+                    From = new Jid(senderId),
+                    Body = MessageContent
+                };
+
+                xmpp.Send(msg);
+            }
+
+            xmpp.Close();
         }
 
-        private string GetFacebookFriends(string friendName)
+        void xmpp_OnError(object sender, Matrix.ExceptionEventArgs e)
+        {
+            var message = e.Exception.ToString();
+        }
+
+        void xmpp_OnBeforeSasl(object sender, Matrix.Xmpp.Sasl.SaslEventArgs e)
+        {
+            var facebookKey = ConfigurationManager.AppSettings["FacebookKey"];
+            var facebookSecret = ConfigurationManager.AppSettings["FacebookSecret"];
+
+            e.Auto = false;
+            e.SaslMechanism = SaslMechanism.X_FACEBOOK_PLATFORM;
+            e.SaslProperties = new FacebookProperties
+            {
+                ApiKey = facebookKey,
+                ApiSecret = facebookSecret,
+                AccessToken = (String)Session["FacebookContext"]
+
+            };
+        }
+
+
+        private List<string> GetFacebookFriends(List<string> friendNames)
         {
             const int batchSize = 50;
-            string facebookId = string.Empty;
+            List<string> facebookIDs = new List<string>();
             var parameters = new Dictionary<string, object>();
 
             var accessToken = (String)Session["FacebookContext"];
 
             var client = new FacebookClient(accessToken);
+            dynamic me = client.Get("me");
+            FacebookId = me.id;
 
             for (long q = 0; q < 5000; q += batchSize)
             {
@@ -220,24 +281,17 @@ namespace Testing.Controllers
                 parameters["offset"] = q;
 
                 dynamic myFriends = client.Get("me/friends", parameters);
+
                 foreach (dynamic friend in myFriends.data)
                 {
-                    if (friend.name == friendName)
+                    if (friendNames.Contains(friend.name))
                     {
-                        facebookId = friend.id;
+                        facebookIDs.Add(friend.id);
                     }
                 }
             }
 
-            return facebookId;
-        }
-
-        private void OnLogin(object sender)
-        {
-            //string recieverId = "-721040555@chat.facebook.com"; //Trevor
-            string recieverId = "-718145001@chat.facebook.com"; //Karim 
-
-            xmpp.Send(new agsXMPP.protocol.client.Message(new Jid(recieverId), agsXMPP.protocol.client.MessageType.chat, MessageContent));
+            return facebookIDs;
         }
 
         [HttpPost]
@@ -249,17 +303,17 @@ namespace Testing.Controllers
 
                 ModelState.Clear();
 
-                SendTwitterMessage();
+                //SendTwitterMessage();
                 SendFacebookMessage();
 
                 message.MessageContent = "";
                 message.StatusMessage = "Message sent successfully!";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 message.StatusMessage = "Error Sending Message";
             }
-            
+
 
             return View("Index", message);
         }
