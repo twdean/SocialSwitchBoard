@@ -204,9 +204,9 @@ namespace Testing.Controllers
 
             if (!String.IsNullOrWhiteSpace(MessageContent))
             {
-                //twitterCtx.UpdateStatus(MessageContent);
-                //twitterCtx.NewDirectMessage(tUser1.Identifier.UserID, MessageContent);
-                //twitterCtx.NewDirectMessage(tUser2.Identifier.UserID, MessageContent);
+                twitterCtx.UpdateStatus(MessageContent);
+                twitterCtx.NewDirectMessage(tUser1.Identifier.UserID, MessageContent);
+                twitterCtx.NewDirectMessage(tUser2.Identifier.UserID, MessageContent);
             }
 
         }
