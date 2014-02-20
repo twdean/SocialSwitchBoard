@@ -206,18 +206,14 @@ namespace Testing.Controllers
 
         public void SendFacebookSasl()
         {
-            log.Debug("Starting xmpp stack");
+            //log.Debug("Starting xmpp stack");
 
             xmppClient.Server = "chat.facebook.com";
             xmppClient.Port = 5222;
             FacebookAccessToken = (String) (Session["FacebookContext"]);
             xmppClient.OnSaslStart += (sender, args) =>
             {
-                log.Debug("xmppClient_OnSaslStart");
-
-                log.Debug("AccessToken: " + FacebookAccessToken);
                 var facebookKey = ConfigurationManager.AppSettings["FacebookKey"];
-
 
                 args.Auto = false;
                 args.Mechanism = agsXMPP.protocol.sasl.Mechanism.GetMechanismName(agsXMPP.protocol.sasl.MechanismType.X_FACEBOOK_PLATFORM);
@@ -231,7 +227,7 @@ namespace Testing.Controllers
 
             xmppClient.OnLogin += (sender) =>
             {
-                log.Debug("xmppClient_OnLogin");
+                //log.Debug("xmppClient_OnLogin");
 
                 FacebookFriendIds = GetFacebookFriends(new List<string> { "Karim Awad", "Kerry Morrison" });
 
@@ -246,12 +242,11 @@ namespace Testing.Controllers
 
             xmppClient.OnError += xmppClient_OnError;
             xmppClient.Open();
-            log.Debug("Finished xmpp stack");
         }
 
         void xmppClient_OnError(object sender, Exception ex)
         {
-            log.Debug(string.Format("Error: {0}", ex.ToString()));
+            //log.Debug(string.Format("Error: {0}", ex.ToString()));
         }
 
         private List<string> GetFacebookFriends(List<string> friendNames)
