@@ -1,31 +1,28 @@
-﻿using System.Reflection;
+﻿using agsXMPP.Sasl.Facebook;
 using LinqToTwitter;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Web.Mvc;
-using Matrix.Xmpp;
-using Matrix.Xmpp.Client;
-using Matrix.Xmpp.Sasl;
-using Matrix.Xmpp.Sasl.Processor.Facebook;
-using Matrix.Xmpp.XHtmlIM;
 using Testing.Models;
 using Facebook;
-using Jid = Matrix.Jid;
+using agsXMPP;
+
+using log4net;
+
 
 namespace Testing.Controllers
 {
     public class HomeController : Controller
     {
-        public XmppClient xmpp = new XmppClient();
-
-
-        //XmppClientConnection xmpp = new XmppClientConnection("chat.facebook.com");
         public string MessageContent { get; set; }
         public string FacebookId { get; set; }
         public string TwitterId { get; set; }
         public List<string> FacebookFriendIds { get; set; }
+        private static readonly ILog log = LogManager.GetLogger(typeof(HomeController));
+        public string FacebookAccessToken  { get; set; }   
+        private XmppClientConnection xmppClient = new XmppClientConnection();
 
         public ActionResult Login()
         {
@@ -141,7 +138,6 @@ namespace Testing.Controllers
             return auth;
         }
 
-
         public ActionResult TwitterAppAuthorizationConfirmation(string returnUrl)
         {
             try
@@ -183,7 +179,6 @@ namespace Testing.Controllers
             return View();
         }
 
-
         public void SendTwitterMessage()
         {
             var twitterCtx = (TwitterContext)Session["TwitterContext"];
@@ -209,67 +204,63 @@ namespace Testing.Controllers
 
         }
 
-        public void SendFacebookMessage()
+        public void SendFacebookSasl()
         {
-            xmpp.OnBeforeSasl += xmpp_OnBeforeSasl;
-            xmpp.OnError += xmpp_OnError;
-            xmpp.XmppDomain = "chat.facebook.com";
-            xmpp.Port = 5222;
-            xmpp.Open();
+            log.Debug("Starting xmpp stack");
 
-            FacebookFriendIds = GetFacebookFriends(new List<string> { "Karim Awad", "Kerry Morrison" });
-
-            string senderId = string.Format("-{0}@chat.facebook.com", FacebookId);
-
-            foreach (string id in FacebookFriendIds)
+            xmppClient.Server = "chat.facebook.com";
+            xmppClient.Port = 5222;
+            FacebookAccessToken = (String) (Session["FacebookContext"]);
+            xmppClient.OnSaslStart += (sender, args) =>
             {
-                string recieverId = string.Format("-{0}@chat.facebook.com", id);
+                log.Debug("xmppClient_OnSaslStart");
 
-                var msg = new Message
+                log.Debug("AccessToken: " + FacebookAccessToken);
+                var facebookKey = ConfigurationManager.AppSettings["FacebookKey"];
+
+
+                args.Auto = false;
+                args.Mechanism = agsXMPP.protocol.sasl.Mechanism.GetMechanismName(agsXMPP.protocol.sasl.MechanismType.X_FACEBOOK_PLATFORM);
+                args.ExtentedData = new FacebookExtendedData
                 {
-                    Type = MessageType.chat,
-                    To = new Jid(recieverId),
-                    From = new Jid(senderId),
-                    Body = MessageContent
+
+                    ApiKey = facebookKey,
+                    AccessToken = FacebookAccessToken
                 };
-
-                xmpp.Send(msg);
-            }
-
-            xmpp.Close();
-        }
-
-        void xmpp_OnError(object sender, Matrix.ExceptionEventArgs e)
-        {
-            var message = e.Exception.ToString();
-        }
-
-        void xmpp_OnBeforeSasl(object sender, Matrix.Xmpp.Sasl.SaslEventArgs e)
-        {
-            var facebookKey = ConfigurationManager.AppSettings["FacebookKey"];
-            var facebookSecret = ConfigurationManager.AppSettings["FacebookSecret"];
-
-            e.Auto = false;
-            e.SaslMechanism = SaslMechanism.X_FACEBOOK_PLATFORM;
-            e.SaslProperties = new FacebookProperties
-            {
-                ApiKey = facebookKey,
-                ApiSecret = facebookSecret,
-                AccessToken = (String)Session["FacebookContext"]
-
             };
+
+            xmppClient.OnLogin += (sender) =>
+            {
+                log.Debug("xmppClient_OnLogin");
+
+                FacebookFriendIds = GetFacebookFriends(new List<string> { "Karim Awad", "Kerry Morrison" });
+
+                var senderId = string.Format("-{0}@chat.facebook.com", FacebookId);
+
+                foreach (string id in FacebookFriendIds)
+                {
+                    var recieverId = string.Format("-{0}@chat.facebook.com", id);
+                    xmppClient.Send(new agsXMPP.protocol.client.Message(new agsXMPP.Jid(recieverId), new agsXMPP.Jid(senderId), agsXMPP.protocol.client.MessageType.chat, MessageContent));
+                }
+            };
+
+            xmppClient.OnError += xmppClient_OnError;
+            xmppClient.Open();
+            log.Debug("Finished xmpp stack");
         }
 
+        void xmppClient_OnError(object sender, Exception ex)
+        {
+            log.Debug(string.Format("Error: {0}", ex.ToString()));
+        }
 
         private List<string> GetFacebookFriends(List<string> friendNames)
         {
             const int batchSize = 50;
-            List<string> facebookIDs = new List<string>();
+            var facebookIDs = new List<string>();
             var parameters = new Dictionary<string, object>();
 
-            var accessToken = (String)Session["FacebookContext"];
-
-            var client = new FacebookClient(accessToken);
+            var client = new FacebookClient(FacebookAccessToken);
             dynamic me = client.Get("me");
             FacebookId = me.id;
 
@@ -301,8 +292,8 @@ namespace Testing.Controllers
 
                 ModelState.Clear();
 
-                //SendTwitterMessage();
-                SendFacebookMessage();
+                SendTwitterMessage();
+                SendFacebookSasl();
 
                 message.MessageContent = "";
                 message.StatusMessage = "Message sent successfully!";
@@ -316,71 +307,5 @@ namespace Testing.Controllers
             return View("Index", message);
         }
 
-        [HttpPost]
-        public ActionResult Create(FormCollection collection)
-        {
-            try
-            {
-                // TODO: Add insert logic here
-
-                return RedirectToAction("Index");
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        //
-        // GET: /Admin/Edit/5
-
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        //
-        // POST: /Admin/Edit/5
-
-        [HttpPost]
-        public ActionResult Edit(int id, FormCollection collection)
-        {
-            try
-            {
-                // TODO: Add update logic here
-
-                return RedirectToAction("Index");
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        //
-        // GET: /Admin/Delete/5
-
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        //
-        // POST: /Admin/Delete/5
-
-        [HttpPost]
-        public ActionResult Delete(int id, FormCollection collection)
-        {
-            try
-            {
-                // TODO: Add delete logic here
-
-                return RedirectToAction("Index");
-            }
-            catch
-            {
-                return View();
-            }
-        }
     }
 }

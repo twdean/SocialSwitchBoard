@@ -39,6 +39,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="agsXMPP">
+      <HintPath>Assemblies\agsXMPP.dll</HintPath>
+    </Reference>
     <Reference Include="Facebook, Version=6.0.10.0, Culture=neutral, PublicKeyToken=58cb4f2111d1e6de, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Assemblies\Facebook.dll</HintPath>
@@ -47,9 +50,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Assemblies\LinqToTwitter.dll</HintPath>
     </Reference>
-    <Reference Include="Matrix, Version=1.5.5.0, Culture=neutral, PublicKeyToken=0120f1df71ff86bc, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Assemblies\Matrix.dll</HintPath>
+    <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -149,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assemblies\Accessibility.dll" />
+    <Content Include="Assemblies\agsXMPP.dll" />
     <Content Include="Assemblies\Antlr3.Runtime.dll" />
     <Content Include="Assemblies\CustomMarshalers.dll" />
     <Content Include="Assemblies\DotNetOpenAuth.AspNet.dll" />
@@ -162,6 +165,7 @@
     <Content Include="Assemblies\Facebook.dll" />
     <Content Include="Assemblies\ISymWrapper.dll" />
     <Content Include="Assemblies\LinqToTwitter.dll" />
+    <Content Include="Assemblies\log4net.dll" />
     <Content Include="Assemblies\Matrix.dll" />
     <Content Include="Assemblies\Microsoft.Activities.Build.dll" />
     <Content Include="Assemblies\Microsoft.AspNet.SignalR.Core.dll" />
